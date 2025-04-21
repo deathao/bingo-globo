@@ -8,6 +8,7 @@ import {
   RigidBodyApi,
 } from '@react-three/rapier';
 import * as THREE from 'three';
+import Ramp from './Ramp';
 
 type Props = {
   drawnBalls: number[];
@@ -110,7 +111,6 @@ const BallsInside = ({ drawnBalls }: { drawnBalls: number[] }) => {
   );
 };
 
-// 🌐 Globo visual girando com Three.js
 const RotatingGlobeVisual = () => {
   const globeRef = useRef<THREE.Mesh>(null);
 
@@ -128,7 +128,6 @@ const RotatingGlobeVisual = () => {
   );
 };
 
-// 🎯 Gaiola invisível que gira fisicamente com as bolas
 const RotatingCageBody = () => {
   const cageRef = useRef<RigidBodyApi>(null);
   const angle = useRef(0);
@@ -156,7 +155,6 @@ const RotatingCageBody = () => {
       enabledRotations={[false, false, false]}
       colliders={false}
     >
-      {/* Colisores invisíveis, menores que o globo */}
       <CuboidCollider args={[5.8, 0.2, 5.8]} position={[0, 6, 0]} />
       <CuboidCollider args={[5.8, 0.2, 5.8]} position={[0, -6, 0]} />
       <CuboidCollider args={[0.2, 6, 5.8]} position={[5.8, 0, 0]} />
@@ -178,6 +176,7 @@ const GloboRapier = ({ drawnBalls }: Props) => {
             <RotatingCageBody />
           </Physics>
           <RotatingGlobeVisual />
+          {drawnBalls.length > 0 && <Ramp number={drawnBalls[0]} />}
         </Canvas>
       </Suspense>
     </div>
