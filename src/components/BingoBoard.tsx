@@ -33,7 +33,7 @@ const BingoBoard = ({ drawnBalls, lastBall, onReset, language }: Props) => {
   };
 
   return (
-    <div style={{ textAlign: 'center', width: '400px', height: '800px'}}>
+    <div style={{ textAlign: 'center', width: '400px', height: '800gitpx'}}>
       {/* Frame de Último Número */}
       <div
         style={{

@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
+// 👇 Ajusta para rodar na raiz do domínio personalizado
 export default defineConfig({
-  base: '/bingo-globo/', // 👈 ESSENCIAL para GitHub Pages
+  base: '/', // ← IMPORTANTE!
   plugins: [react()],
-});
+})
