@@ -33,14 +33,14 @@ const BingoBoard = ({ drawnBalls, lastBall, onReset, language }: Props) => {
   };
 
   return (
-    <div style={{ textAlign: 'center', width: '400px' }}>
-      {/* Frame largura fixa */}
+    <div style={{ textAlign: 'center', width: '400px', height: '800px'}}>
+      {/* Frame de Último Número */}
       <div
         style={{
           border: '3px solid #000',
           borderRadius: '8px',
           padding: '10px',
-          margin: '0 auto 20px',
+          margin: '5px auto 10px',
           backgroundColor: '#000',
           color: '#fff',
           width: '400px',
@@ -56,8 +56,8 @@ const BingoBoard = ({ drawnBalls, lastBall, onReset, language }: Props) => {
         </h2>
       </div>
 
-      {/* Container tabela (com altura fixa, sem scroll) */}
-      <div style={{ height: '600px' }}>
+      {/* Tabela de Números */}
+      <div style={{ maxHeight: '1000px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px' }}>
           {['B', 'I', 'N', 'G', 'O'].map((letter, idx) => {
             const colors = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444'];
@@ -102,22 +102,6 @@ const BingoBoard = ({ drawnBalls, lastBall, onReset, language }: Props) => {
           )}
         </div>
       </div>
-
-      <button
-        onClick={confirmReset}
-        style={{
-          marginTop: '15px',
-          padding: '10px 20px',
-          fontSize: '16px',
-          backgroundColor: '#007bff',
-          color: '#fff',
-          borderRadius: '6px',
-          border: 'none',
-          cursor: 'pointer',
-        }}
-      >
-        {t.newGame}
-      </button>
     </div>
   );
 };

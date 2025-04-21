@@ -37,7 +37,6 @@ function App() {
 
   return (
     <div style={{ backgroundColor: '#f0f0f0', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-      
       {/* Bandeiras no frame principal */}
       <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 10 }}>
         {(['pt', 'en', 'es'] as const).map((lang) => (
@@ -59,29 +58,56 @@ function App() {
         ))}
       </div>
 
-      <div style={{ backgroundColor: '#e0f2fe', margin: '40px auto', borderRadius: '12px', padding: '20px', maxWidth: '1400px', height: 'calc(100vh - 100px)', boxSizing: 'border-box' }}>
-        
+      <div style={{
+        backgroundColor: '#e0f2fe',
+        margin: '40px auto',
+        borderRadius: '12px',
+        padding: '20px',
+        maxWidth: '1400px',
+        height: 'calc(100vh - 100px)',
+        boxSizing: 'border-box'
+      }}>
         <div style={{ display: 'flex', gap: 20, padding: '60px 20px 20px', height: 'calc(100vh - 60px)' }}>
           
+          {/* Globo + botões */}
           <div style={{ width: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <GloboRapier drawnBalls={drawnBalls} />
-            <button
-              onClick={handleDraw}
-              style={{
-                padding: '10px 20px',
-                fontSize: '16px',
-                backgroundColor: '#28a745',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                marginTop: 15,
-                cursor: 'pointer',
-              }}
-            >
-              {t.drawBall}
-            </button>
+
+            {/* Botões lado a lado abaixo do globo */}
+            <div style={{ display: 'flex', gap: '20px', marginTop: 15 }}>
+              <button
+                onClick={handleReset}
+                style={{
+                  padding: '10px 20px',
+                  fontSize: '16px',
+                  backgroundColor: '#007bff',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                }}
+              >
+                {t.newGame}
+              </button>
+
+              <button
+                onClick={handleDraw}
+                style={{
+                  padding: '10px 20px',
+                  fontSize: '16px',
+                  backgroundColor: '#28a745',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                }}
+              >
+                {t.drawBall}
+              </button>
+            </div>
           </div>
 
+          {/* Cartela de bingo */}
           <div style={{ flex: 1, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <BingoBoard
               drawnBalls={drawnBalls}
