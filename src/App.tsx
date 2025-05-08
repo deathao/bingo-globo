@@ -3,6 +3,9 @@ import { useState } from 'react';
 import BingoBoard from './components/BingoBoard';
 import GloboRapier from './components/GloboRapier';
 import { translations } from './translations';
+import About from './components/About';
+import HowToPlay from './components/HowToPlay';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 const getInitialLanguage = (): 'pt' | 'en' | 'es' => {
   const lang = navigator.language.slice(0, 2);
@@ -36,45 +39,63 @@ function App() {
   };
 
   return (
-    <div style={{ backgroundColor: '#f0f0f0', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-      {/* Bandeiras no frame principal */}
-      <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 10 }}>
-        {(['pt', 'en', 'es'] as const).map((lang) => (
-          <button
-            key={lang}
-            onClick={() => setLanguage(lang)}
-            style={{
-              fontSize: '36px',
-              opacity: language === lang ? 1 : 0.4,
-              border: 'none',
-              background: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {lang === 'pt' && '🇧🇷'}
-            {lang === 'en' && '🇺🇸'}
-            {lang === 'es' && '🇪🇸'}
-          </button>
-        ))}
+    <div style={{ backgroundColor: '#f0f0f0', minHeight: '100vh', overflowX: 'hidden', fontFamily: 'sans-serif' }}>
+      
+      {/* Cabeçalho com menu e bandeiras */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '10px 20px',
+        backgroundColor: '#fff',
+        borderBottom: '2px solid #ddd'
+      }}>
+        {/* Menu */}
+        <div style={{ display: 'flex', gap: '30px' }}>
+          <a href="#about" style={menuLinkStyle}>{t.aboutTitle}</a>
+          <a href="#how" style={menuLinkStyle}>{t.howToPlayTitle}</a>
+          <a href="#privacy" style={menuLinkStyle}>{t.privacyTitle}</a>
+        </div>
+
+        {/* Bandeiras */}
+        <div style={{ display: 'flex', gap: 10 }}>
+          {(['pt', 'en', 'es'] as const).map((lang) => (
+            <button
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              style={{
+                fontSize: '28px',
+                opacity: language === lang ? 1 : 0.4,
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {lang === 'pt' && '🇧🇷'}
+              {lang === 'en' && '🇺🇸'}
+              {lang === 'es' && '🇪🇸'}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* Conteúdo principal */}
       <div style={{
         backgroundColor: '#e0f2fe',
         margin: '40px auto',
         borderRadius: '12px',
         padding: '20px',
         maxWidth: '1400px',
-        height: 'calc(100vh - 100px)',
+        height: 'calc(100vh - 150px)',
         boxSizing: 'border-box'
       }}>
-        <div style={{ display: 'flex', gap: 20, padding: '60px 20px 20px', height: 'calc(100vh - 60px)' }}>
+        <div style={{ display: 'flex', gap: 20, height: '100%' }}>
           
           {/* Globo + botões */}
-          <div style={{ width: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ width: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <GloboRapier drawnBalls={drawnBalls} />
 
-            {/* Botões lado a lado abaixo do globo */}
-            <div style={{ display: 'flex', gap: '20px', marginTop: 15 }}>
+            <div style={{ display: 'flex', gap: '20px', marginTop: 20 }}>
               <button
                 onClick={handleReset}
                 style={{
@@ -89,7 +110,6 @@ function App() {
               >
                 {t.newGame}
               </button>
-
               <button
                 onClick={handleDraw}
                 style={{
@@ -107,7 +127,7 @@ function App() {
             </div>
           </div>
 
-          {/* Cartela de bingo */}
+          {/* Tabela de Bingo */}
           <div style={{ flex: 1, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <BingoBoard
               drawnBalls={drawnBalls}
@@ -118,8 +138,29 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Seções de conteúdo */}
+      <div style={{ backgroundColor: '#fff', padding: '40px 20px', color: '#222' }}>
+        <section id="about">
+          <About language={language} />
+        </section>
+        <section id="how" style={{ marginTop: '40px' }}>
+          <HowToPlay language={language} />
+        </section>
+        <section id="privacy" style={{ marginTop: '40px' }}>
+          <PrivacyPolicy language={language} />
+        </section>
+      </div>
     </div>
   );
 }
+
+const menuLinkStyle: React.CSSProperties = {
+  textDecoration: 'none',
+  color: '#222',
+  fontWeight: 'bold',
+  fontSize: '16px',
+  transition: 'color 0.2s',
+};
 
 export default App;
