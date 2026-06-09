@@ -1,7 +1,7 @@
 import './App.css';
 import { useState } from 'react';
 import BingoBoard from './components/BingoBoard';
-import GloboRapier from './components/GloboRapier';
+import GloboFisico from './components/GloboFisico';
 import CardGenerator from './components/CardGenerator';
 import { translations } from './translations';
 import About from './components/About';
@@ -144,7 +144,7 @@ function App() {
             
             {/* 3D Render Cage Frame */}
             <div style={{ width: '100%', height: '420px', borderRadius: '16px', overflow: 'hidden', background: 'radial-gradient(circle, #f8fafc 0%, #cbd5e1 100%)', border: '1px solid rgba(226, 232, 240, 0.6)', marginBottom: '20px' }}>
-              <GloboRapier drawnBalls={drawnBalls} />
+              <GloboFisico drawnBalls={drawnBalls} />
             </div>
 
             {/* Drawing Controls */}
