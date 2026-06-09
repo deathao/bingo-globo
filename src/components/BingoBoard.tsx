@@ -15,7 +15,7 @@ const getLetter = (num: number): string => {
   return 'O';
 };
 
-const BingoBoard = ({ drawnBalls, lastBall, onReset, language }: Props) => {
+const BingoBoard = ({ drawnBalls, lastBall, language }: Props) => {
   const t = translations[language];
 
   const columns = {
@@ -26,73 +26,118 @@ const BingoBoard = ({ drawnBalls, lastBall, onReset, language }: Props) => {
     O: Array.from({ length: 15 }, (_, i) => i + 61),
   };
 
-  const confirmReset = () => {
-    if (window.confirm(t.confirmNewGame)) {
-      onReset();
+  const getColColor = (letter: string) => {
+    switch (letter) {
+      case 'B': return '#3b82f6';
+      case 'I': return '#22c55e';
+      case 'N': return '#f59e0b';
+      case 'G': return '#f97316';
+      default: return '#ef4444'; // 'O'
     }
   };
 
   return (
-    <div style={{ textAlign: 'center', width: '400px', height: '800gitpx'}}>
+    <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Frame de Último Número */}
       <div
+        className="glass-card"
         style={{
-          border: '3px solid #000',
-          borderRadius: '8px',
-          padding: '10px',
-          margin: '5px auto 10px',
-          backgroundColor: '#000',
-          color: '#fff',
-          width: '400px',
-          boxSizing: 'border-box',
+          padding: '16px',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
+          textAlign: 'center'
         }}
       >
-        <h2 style={{ margin: 0, fontSize: '18px' }}>
-          {lastBall
-            ? t.lastBall
-                .replace('{letter}', getLetter(lastBall))
-                .replace('{number}', lastBall.toString())
-            : t.noBall}
-        </h2>
+        <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', trackingLetter: '0.05em', color: 'var(--text-muted)', marginBottom: '4px' }}>
+          {t.lastBall.split(':')[0]}
+        </div>
+        {lastBall ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <span
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                backgroundColor: getColColor(getLetter(lastBall)),
+                color: '#fff',
+                fontSize: '28px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+                animation: 'pulseGlow 2s infinite'
+              }}
+            >
+              {getLetter(lastBall)}
+            </span>
+            <span style={{ fontSize: '36px', fontWeight: '800', color: 'var(--text-color)' }}>
+              {lastBall}
+            </span>
+          </div>
+        ) : (
+          <div style={{ fontSize: '16px', fontWeight: '500', color: 'var(--text-muted)', padding: '10px 0' }}>
+            {t.noBall}
+          </div>
+        )}
       </div>
 
       {/* Tabela de Números */}
-      <div style={{ maxHeight: '1000px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px' }}>
-          {['B', 'I', 'N', 'G', 'O'].map((letter, idx) => {
-            const colors = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444'];
-            return (
-              <div
-                key={letter}
-                style={{
-                  backgroundColor: colors[idx],
-                  color: '#fff',
-                  padding: '8px',
-                  fontWeight: 'bold',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {letter}
-              </div>
-            );
-          })}
+      <div 
+        className="glass-card" 
+        style={{ 
+          padding: '16px', 
+          backgroundColor: 'var(--bg-card)', 
+          border: '1px solid rgba(226, 232, 240, 0.8)'
+        }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
+          {['B', 'I', 'N', 'G', 'O'].map((letter) => (
+            <div
+              key={letter}
+              style={{
+                backgroundColor: getColColor(letter),
+                color: '#fff',
+                padding: '10px 0',
+                fontWeight: '800',
+                borderRadius: '10px',
+                textAlign: 'center',
+                fontSize: '16px',
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+              }}
+            >
+              {letter}
+            </div>
+          ))}
           {Array.from({ length: 15 }).map((_, rowIndex) =>
             ['B', 'I', 'N', 'G', 'O'].map((letter) => {
               const number = columns[letter][rowIndex];
+              const isDrawn = drawnBalls.includes(number);
+              const isLast = lastBall === number;
+              const colColor = getColColor(letter);
+
               return (
                 <div
                   key={number}
                   style={{
-                    padding: '6px',
-                    backgroundColor: drawnBalls.includes(number) ? '#c92a2a' : '#f0f0f0',
-                    color: drawnBalls.includes(number) ? '#fff' : '#333',
-                    borderRadius: '4px',
-                    height: '35px',
+                    padding: '8px 0',
+                    backgroundColor: isDrawn ? colColor : 'rgba(241, 245, 249, 0.6)',
+                    color: isDrawn ? '#fff' : 'var(--text-color)',
+                    borderRadius: '8px',
+                    height: '38px',
+                    fontSize: '15px',
+                    fontWeight: isDrawn ? 'bold' : '500',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxSizing: 'border-box',
+                    boxShadow: isLast 
+                      ? `0 0 12px ${colColor}, inset 0 0 4px rgba(255,255,255,0.6)`
+                      : 'none',
+                    border: isLast ? `2px solid #fff` : '1px solid rgba(226,232,240,0.3)',
+                    transform: isLast ? 'scale(1.08)' : 'none',
+                    zIndex: isLast ? 2 : 1,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}
                 >
                   {number}

@@ -2,10 +2,14 @@ import './App.css';
 import { useState } from 'react';
 import BingoBoard from './components/BingoBoard';
 import GloboRapier from './components/GloboRapier';
+import CardGenerator from './components/CardGenerator';
 import { translations } from './translations';
 import About from './components/About';
 import HowToPlay from './components/HowToPlay';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import CardTips from './components/CardTips';
+import BingoHistory from './components/BingoHistory';
+import { sounds } from './utils/sound';
 
 const getInitialLanguage = (): 'pt' | 'en' | 'es' => {
   const lang = navigator.language.slice(0, 2);
@@ -18,6 +22,7 @@ function App() {
   const [drawnBalls, setDrawnBalls] = useState<number[]>([]);
   const [lastBall, setLastBall] = useState<number | null>(null);
   const [language, setLanguage] = useState<'pt' | 'en' | 'es'>(getInitialLanguage());
+  const [muted, setMuted] = useState(false);
 
   const t = translations[language];
 
@@ -25,9 +30,13 @@ function App() {
     if (!remainingBalls.length) return;
     const randomIdx = Math.floor(Math.random() * remainingBalls.length);
     const drawnNumber = remainingBalls[randomIdx];
+    
     setDrawnBalls((prev) => [drawnNumber, ...prev]);
     setLastBall(drawnNumber);
     setRemainingBalls((prev) => prev.filter((n) => n !== drawnNumber));
+    
+    // Play ball draw animation sound
+    sounds.playBallDraw();
   };
 
   const handleReset = () => {
@@ -38,97 +47,128 @@ function App() {
     }
   };
 
+  const handleMuteToggle = () => {
+    const nextMuted = sounds.toggleMute();
+    setMuted(nextMuted);
+  };
+
   return (
-    <div style={{ backgroundColor: '#f0f0f0', minHeight: '100vh', overflowX: 'hidden', fontFamily: 'sans-serif' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-app)' }}>
       
-      {/* Cabeçalho com menu e bandeiras */}
-      <div style={{
+      {/* HEADER NAVBAR */}
+      <header style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-color)',
+        padding: '16px 24px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '10px 20px',
-        backgroundColor: '#fff',
-        borderBottom: '2px solid #ddd'
+        flexWrap: 'wrap',
+        gap: '16px'
       }}>
-        {/* Menu */}
-        <div style={{ display: 'flex', gap: '30px' }}>
-          <a href="#about" style={menuLinkStyle}>{t.aboutTitle}</a>
-          <a href="#how" style={menuLinkStyle}>{t.howToPlayTitle}</a>
-          <a href="#privacy" style={menuLinkStyle}>{t.privacyTitle}</a>
+        {/* Logo and Subtitle */}
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
+            Bingofy
+          </h1>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginTop: '-2px' }}>
+            {t.appSubtitle}
+          </span>
         </div>
 
-        {/* Bandeiras */}
-        <div style={{ display: 'flex', gap: 10 }}>
-          {(['pt', 'en', 'es'] as const).map((lang) => (
-            <button
-              key={lang}
-              onClick={() => setLanguage(lang)}
-              style={{
-                fontSize: '28px',
-                opacity: language === lang ? 1 : 0.4,
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {lang === 'pt' && '🇧🇷'}
-              {lang === 'en' && '🇺🇸'}
-              {lang === 'es' && '🇪🇸'}
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* Quick Links Menu */}
+        <nav style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+          <a href="#about" style={menuLinkStyle}>{t.aboutTitle.split(' ')[0]}</a>
+          <a href="#how" style={menuLinkStyle}>{t.howToPlayTitle.split(' ')[0]}</a>
+          <a href="#privacy" style={menuLinkStyle}>{t.privacyTitle.split(' ')[2] || t.privacyTitle}</a>
+          <a href="#cardtips" style={menuLinkStyle}>{t.cardTipsTitle.split(' ')[2] || t.cardTipsTitle}</a>
+          <a href="#history" style={menuLinkStyle}>{t.bingoHistoryTitle.split(' ')[1] || t.bingoHistoryTitle}</a>
+        </nav>
 
-      {/* Conteúdo principal */}
-      <div style={{
-        backgroundColor: '#e0f2fe',
-        margin: '40px auto',
-        borderRadius: '12px',
-        padding: '20px',
-        maxWidth: '1400px',
-        height: 'calc(100vh - 150px)',
-        boxSizing: 'border-box'
-      }}>
-        <div style={{ display: 'flex', gap: 20, height: '100%' }}>
-          
-          {/* Globo + botões */}
-          <div style={{ width: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <GloboRapier drawnBalls={drawnBalls} />
+        {/* Action Controls (Lang, Mute) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Mute Button */}
+          <button 
+            onClick={handleMuteToggle}
+            className="btn btn-secondary"
+            style={{ padding: '8px 12px', borderRadius: '10px', fontSize: '13px' }}
+          >
+            {muted ? '🔇' : '🔊'} {t.soundToggle}
+          </button>
 
-            <div style={{ display: 'flex', gap: '20px', marginTop: 20 }}>
+          {/* Lang Selector flags */}
+          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '12px' }}>
+            {(['pt', 'en', 'es'] as const).map((lang) => (
               <button
-                onClick={handleReset}
+                key={lang}
+                onClick={() => setLanguage(lang)}
                 style={{
-                  padding: '10px 20px',
-                  fontSize: '16px',
-                  backgroundColor: '#007bff',
-                  color: '#fff',
+                  fontSize: '18px',
+                  opacity: language === lang ? 1 : 0.4,
                   border: 'none',
-                  borderRadius: 6,
+                  background: 'none',
                   cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  backgroundColor: language === lang ? '#fff' : 'transparent',
+                  boxShadow: language === lang ? 'var(--shadow-sm)' : 'none',
+                  transition: 'all 0.2s'
                 }}
               >
-                {t.newGame}
+                {lang === 'pt' && '🇧🇷'}
+                {lang === 'en' && '🇺🇸'}
+                {lang === 'es' && '🇪🇸'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      {/* DASHBOARD HERO CONTAINER */}
+      <main style={{ flex: 1, padding: '24px', maxWidth: '1440px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        
+        {/* Main interactive grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: '24px',
+          alignItems: 'start'
+        }}>
+          
+          {/* COLUMN 1: The 3D Drawing Cage */}
+          <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            
+            {/* 3D Render Cage Frame */}
+            <div style={{ width: '100%', height: '420px', borderRadius: '16px', overflow: 'hidden', background: 'radial-gradient(circle, #f8fafc 0%, #cbd5e1 100%)', border: '1px solid rgba(226, 232, 240, 0.6)', marginBottom: '20px' }}>
+              <GloboRapier drawnBalls={drawnBalls} />
+            </div>
+
+            {/* Drawing Controls */}
+            <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+              <button
+                onClick={handleReset}
+                className="btn btn-secondary"
+                style={{ flex: 1 }}
+              >
+                🗑️ {t.newGame}
               </button>
               <button
                 onClick={handleDraw}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '16px',
-                  backgroundColor: '#28a745',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                }}
+                disabled={remainingBalls.length === 0}
+                className="btn btn-primary"
+                style={{ flex: 2 }}
               >
-                {t.drawBall}
+                🔮 {t.drawBall}
               </button>
             </div>
           </div>
 
-          {/* Tabela de Bingo */}
-          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          {/* COLUMN 2: Master Bingo Board */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
             <BingoBoard
               drawnBalls={drawnBalls}
               lastBall={lastBall}
@@ -136,30 +176,55 @@ function App() {
               language={language}
             />
           </div>
-        </div>
-      </div>
 
-      {/* Seções de conteúdo */}
-      <div style={{ backgroundColor: '#fff', padding: '40px 20px', color: '#222' }}>
-        <section id="about">
-          <About language={language} />
-        </section>
-        <section id="how" style={{ marginTop: '40px' }}>
-          <HowToPlay language={language} />
-        </section>
-        <section id="privacy" style={{ marginTop: '40px' }}>
-          <PrivacyPolicy language={language} />
-        </section>
-      </div>
+          {/* COLUMN 3: Playable Card Generator */}
+          <div>
+            <CardGenerator language={language} />
+          </div>
+
+        </div>
+
+        {/* STATIC SECTIONS SECTION */}
+        <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <section id="about">
+            <About language={language} />
+          </section>
+          <section id="how">
+            <HowToPlay language={language} />
+          </section>
+          <section id="privacy">
+            <PrivacyPolicy language={language} />
+          </section>
+          <section id="cardtips">
+            <CardTips language={language} />
+          </section>
+          <section id="history">
+            <BingoHistory language={language} />
+          </section>
+        </div>
+
+      </main>
+
+      {/* FOOTER */}
+      <footer style={{
+        textAlign: 'center',
+        padding: '24px',
+        borderTop: '1px solid var(--border-color)',
+        backgroundColor: '#fff',
+        color: 'var(--text-muted)',
+        fontSize: '14px',
+        fontWeight: 500
+      }}>
+        <p>Bingofy &copy; {new Date().getFullYear()} - {t.footerText}</p>
+      </footer>
     </div>
   );
 }
 
 const menuLinkStyle: React.CSSProperties = {
-  textDecoration: 'none',
-  color: '#222',
-  fontWeight: 'bold',
-  fontSize: '16px',
+  fontSize: '14px',
+  fontWeight: '600',
+  color: 'var(--text-muted)',
   transition: 'color 0.2s',
 };
 
