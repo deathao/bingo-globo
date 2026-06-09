@@ -260,8 +260,8 @@ export const CardGenerator = ({ language, drawnBalls, onWin }: Props) => {
                 borderRadius: '10px',
                 border: '1px solid var(--border-color)',
                 fontWeight: 'bold',
-                backgroundColor: activeTab === idx ? 'var(--accent-color)' : '#fff',
-                color: activeTab === idx ? '#fff' : 'var(--text-muted)',
+                backgroundColor: activeTab === idx ? 'var(--accent-color)' : 'var(--bg-card-inner)',
+                color: activeTab === idx ? '#fff' : 'var(--text-color)',
                 boxShadow: activeTab === idx ? 'var(--shadow-md)' : 'none',
                 cursor: 'pointer'
               }}
@@ -296,7 +296,7 @@ export const CardGenerator = ({ language, drawnBalls, onWin }: Props) => {
                 border: isWon ? '3px solid #10b981' : '1px solid var(--border-color)',
                 borderRadius: '20px',
                 padding: '16px',
-                backgroundColor: '#fff',
+                backgroundColor: 'var(--bg-card-inner)',
                 position: 'relative',
                 boxShadow: isWon ? '0 10px 25px -5px rgba(16, 185, 129, 0.4)' : 'var(--shadow-sm)',
                 transition: 'all 0.3s ease',
@@ -366,7 +366,7 @@ export const CardGenerator = ({ language, drawnBalls, onWin }: Props) => {
                             ? '1px solid #10b981' 
                             : isDrawnButUnmarked 
                               ? '1.5px dashed var(--accent-color)'
-                              : '1px solid rgba(226, 232, 240, 0.8)',
+                              : '1px solid var(--border-color)',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
@@ -377,8 +377,8 @@ export const CardGenerator = ({ language, drawnBalls, onWin }: Props) => {
                           backgroundColor: isMarked 
                             ? '#10b981' 
                             : isDrawnButUnmarked 
-                              ? 'rgba(99, 102, 241, 0.1)' 
-                              : '#f8fafc',
+                              ? 'rgba(99, 102, 241, 0.15)' 
+                              : 'var(--bg-cell)',
                           color: isMarked ? '#fff' : 'var(--text-color)',
                           boxShadow: isMarked ? 'inset 0 1px 3px rgba(0,0,0,0.1)' : 'none',
                           transition: 'all 0.2s',

@@ -153,7 +153,7 @@ export const BingoBoard = ({ drawnBalls, lastBall, language }: Props) => {
                     tabIndex={0}
                     style={{
                       padding: '8px 0',
-                      backgroundColor: isDrawn ? colColor : 'rgba(241, 245, 249, 0.6)',
+                      backgroundColor: isDrawn ? colColor : 'var(--bg-cell)',
                       color: isDrawn ? '#fff' : 'var(--text-color)',
                       borderRadius: '8px',
                       height: '38px',

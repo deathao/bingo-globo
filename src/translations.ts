@@ -92,7 +92,12 @@ export const translations = {
     muteSound: 'Mutar',
     unmuteSound: 'Ativar Som',
     appSubtitle: 'Sorteador com Física 3D & Cartelas Interativas',
-    footerText: 'Desenvolvido para máxima diversão na web e desktop.'
+    footerText: 'Desenvolvido para máxima diversão na web e desktop.',
+    navAbout: 'Sobre',
+    navHow: 'Como Jogar',
+    navPrivacy: 'Privacidade',
+    navTips: 'Dicas',
+    navHistory: 'História'
   },
 
   en: {
@@ -188,7 +193,12 @@ export const translations = {
     muteSound: 'Mute',
     unmuteSound: 'Unmute',
     appSubtitle: '3D Physics Sorter & Interactive Cards',
-    footerText: 'Built for ultimate fun on web and desktop.'
+    footerText: 'Built for ultimate fun on web and desktop.',
+    navAbout: 'About',
+    navHow: 'How to Play',
+    navPrivacy: 'Privacy',
+    navTips: 'Tips',
+    navHistory: 'History'
   },
 
   es: {
@@ -284,6 +294,11 @@ export const translations = {
     muteSound: 'Silenciar',
     unmuteSound: 'Activar Sonido',
     appSubtitle: 'Sorteador 3D Físico y Cartones Interactivos',
-    footerText: 'Diseñado para la máxima diversión en web y escritorio.'
+    footerText: 'Diseñado para la máxima diversión en web y escritorio.',
+    navAbout: 'Sobre',
+    navHow: 'Cómo Jugar',
+    navPrivacy: 'Privacidad',
+    navTips: 'Consejos',
+    navHistory: 'Historia'
   }
 };

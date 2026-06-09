@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -18,11 +18,47 @@ const Ramp = ({ number }: Props) => {
   const ballRef = useRef<THREE.Mesh>(null);
   const [position, setPosition] = useState<[number, number, number] | null>(null);
   const [visible, setVisible] = useState(false);
+  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
 
   useEffect(() => {
     if (number > 0) {
       setPosition([0, -2, 6]); // Slide start
       setVisible(true);
+
+      // Create texture in a state managed lifecycle to handle clean disposal
+      const size = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      
+      const grad = ctx.createRadialGradient(size/2, size/2, 10, size/2, size/2, size/2);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.3, getBallColor(number));
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 3.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(number.toString(), size / 2, size / 2);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      setTexture(tex);
+
+      return () => {
+        tex.dispose();
+      };
     }
   }, [number]);
 
@@ -44,57 +80,24 @@ const Ramp = ({ number }: Props) => {
     }
   });
 
-  const texture = useMemo(() => {
-    const size = 128;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-    
-    // Gradient matching ball color
-    const grad = ctx.createRadialGradient(size/2, size/2, 10, size/2, size/2, size/2);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.3, getBallColor(number));
-    grad.addColorStop(1, '#1e293b');
-    ctx.fillStyle = grad;
-    
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // White circle for label
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size / 3.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 36px Outfit, Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(number.toString(), size / 2, size / 2);
-    return new THREE.CanvasTexture(canvas);
-  }, [number]);
-
   return (
     <>
       {/* Animated ball rolling down the slide */}
-      {visible && position && (
-        <mesh ref={ballRef} position={position} castShadow>
+      {visible && position && texture && (
+        <mesh ref={ballRef} position={position}>
           <sphereGeometry args={[0.38, 32, 32]} />
-          <meshStandardMaterial map={texture} roughness={0.15} metalness={0.1} />
+          {/* meshBasicMaterial guarantees visibility without lighting dependencies */}
+          <meshBasicMaterial map={texture} />
         </mesh>
       )}
 
-      {/* Frosted Glass Slide */}
-      <mesh position={[0, -3.8, 3.2]} rotation={[-Math.PI / 8, 0, 0]} receiveShadow>
+      {/* Frosted Slide */}
+      <mesh position={[0, -3.8, 3.2]} rotation={[-Math.PI / 8, 0, 0]}>
         <boxGeometry args={[1.5, 0.15, 7]} />
-        <meshStandardMaterial 
-          color="#94a3b8" 
-          roughness={0.2} 
-          metalness={0.1} 
+        <meshBasicMaterial 
+          color="#475569" 
           transparent 
-          opacity={0.65} 
+          opacity={0.7} 
         />
       </mesh>
     </>

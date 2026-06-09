@@ -33,8 +33,25 @@ function App() {
   const [muted, setMuted] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [confettiActive, setConfettiActive] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
 
   const t = translations[language];
+
+  // Capture global unhandled exceptions for mobile UI diagnostics
+  useEffect(() => {
+    const errorHandler = (event: ErrorEvent) => {
+      setErrors(prev => [...prev, `Error: ${event.message} at ${event.filename}:${event.lineno}`]);
+    };
+    const rejectionHandler = (event: PromiseRejectionEvent) => {
+      setErrors(prev => [...prev, `Unhandled Rejection: ${event.reason}`]);
+    };
+    window.addEventListener('error', errorHandler);
+    window.addEventListener('unhandledrejection', rejectionHandler);
+    return () => {
+      window.removeEventListener('error', errorHandler);
+      window.removeEventListener('unhandledrejection', rejectionHandler);
+    };
+  }, []);
 
   // Sync theme class to body
   useEffect(() => {
@@ -117,11 +134,11 @@ function App() {
 
         {/* Dynamic section links */}
         <nav style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-          <a href="#about" style={menuLinkStyle}>{t.aboutTitle.split(' ')[0]}</a>
-          <a href="#how" style={menuLinkStyle}>{t.howToPlayTitle.split(' ')[0]}</a>
-          <a href="#privacy" style={menuLinkStyle}>{t.privacyTitle.split(' ')[2] || t.privacyTitle}</a>
-          <a href="#cardtips" style={menuLinkStyle}>{t.cardTipsTitle.split(' ')[2] || t.cardTipsTitle}</a>
-          <a href="#history" style={menuLinkStyle}>{t.bingoHistoryTitle.split(' ')[1] || t.bingoHistoryTitle}</a>
+          <a href="#about" style={menuLinkStyle}>{t.navAbout}</a>
+          <a href="#how" style={menuLinkStyle}>{t.navHow}</a>
+          <a href="#privacy" style={menuLinkStyle}>{t.navPrivacy}</a>
+          <a href="#cardtips" style={menuLinkStyle}>{t.navTips}</a>
+          <a href="#history" style={menuLinkStyle}>{t.navHistory}</a>
         </nav>
 
         {/* Global Controls Panel */}
@@ -208,10 +225,10 @@ function App() {
       {/* 3. CORE PLAYING DASHBOARD */}
       <main style={{ flex: 1, padding: '24px', maxWidth: '1440px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* Core Layout Grid */}
+        {/* Core Layout Grid - minmax 300px allows seamless horizontal wrap on mobile screens */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '24px',
           alignItems: 'start'
         }}>
@@ -297,6 +314,37 @@ function App() {
             <BingoHistory language={language} />
           </section>
         </div>
+
+        {/* Live diagnostic error console overlay */}
+        {errors.length > 0 && (
+          <div style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            maxWidth: '380px',
+            maxHeight: '260px',
+            overflowY: 'auto',
+            backgroundColor: 'rgba(239, 68, 68, 0.95)',
+            color: '#fff',
+            padding: '14px',
+            borderRadius: '12px',
+            zIndex: 999999,
+            fontSize: '11px',
+            fontFamily: 'monospace',
+            boxShadow: 'var(--shadow-xl)',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>🚨 diagnostic Error Console ({errors.length})</span>
+              <button onClick={() => setErrors([])} style={{ border: 'none', background: 'none', color: '#fff', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}>✕</button>
+            </div>
+            {errors.map((err, i) => (
+              <div key={i} style={{ marginBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '6px', wordBreak: 'break-word' }}>
+                {err}
+              </div>
+            ))}
+          </div>
+        )}
 
       </main>
 

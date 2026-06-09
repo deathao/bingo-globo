@@ -62,10 +62,77 @@ class SimBall {
   }
 }
 
+// Individual Ball Component
+const Ball = ({
+  number,
+  initialPosition,
+  hidden,
+  onRegister,
+}: {
+  number: number;
+  initialPosition: [number, number, number];
+  hidden: boolean;
+  onRegister: (num: number, el: THREE.Mesh | null) => void;
+}) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const ballRadius = 0.38;
+
+  // Register mesh with parent simulation
+  useEffect(() => {
+    onRegister(number, meshRef.current);
+    return () => onRegister(number, null);
+  }, [number, onRegister]);
+
+  // Generate ball texture inside R3F context
+  const texture = useMemo(() => {
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    
+    // Gradient matching ball column color
+    const grad = ctx.createRadialGradient(size/2, size/2, 10, size/2, size/2, size/2);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.35, getBallColor(number));
+    grad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // White circle for label
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 3.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 36px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(number.toString(), size / 2, size / 2);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.needsUpdate = true;
+    return tex;
+  }, [number]);
+
+  if (hidden) return null;
+
+  return (
+    <mesh ref={meshRef} position={initialPosition}>
+      <sphereGeometry args={[ballRadius, 16, 16]} />
+      {/* meshBasicMaterial avoids lighting overhead and is fully visible in dark themes */}
+      <meshBasicMaterial map={texture} />
+    </mesh>
+  );
+};
+
 // Visual globe and simulation coordinator
-const GlobeSimulation = ({ drawnBalls, textures }: { drawnBalls: number[]; textures: THREE.CanvasTexture[] }) => {
+const GlobeSimulation = ({ drawnBalls }: { drawnBalls: number[] }) => {
   const cageRef = useRef<THREE.Group>(null);
-  const ballRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const ballRefs = useRef<Map<number, THREE.Mesh>>(new Map());
   const center = useMemo(() => new THREE.Vector3(0, 0.5, 0), []);
   const cageRadius = 5.4;
   const ballRadius = 0.38;
@@ -97,6 +164,16 @@ const GlobeSimulation = ({ drawnBalls, textures }: { drawnBalls: number[]; textu
       list.push(new SimBall(list.length + 1, [0, 0.5, 0]));
     }
     return list;
+  }, []);
+
+  const registerBallMesh = useMemo(() => {
+    return (num: number, el: THREE.Mesh | null) => {
+      if (el) {
+        ballRefs.current.set(num, el);
+      } else {
+        ballRefs.current.delete(num);
+      }
+    };
   }, []);
 
   useFrame((state, delta) => {
@@ -209,9 +286,9 @@ const GlobeSimulation = ({ drawnBalls, textures }: { drawnBalls: number[]; textu
       sounds.playBallCollision(maxIntensity);
     }
 
-    // Update visual mesh positions directly
-    simBalls.forEach((ball, idx) => {
-      const mesh = ballRefs.current[idx];
+    // Update visual mesh positions directly via ref maps
+    simBalls.forEach((ball) => {
+      const mesh = ballRefs.current.get(ball.num);
       if (mesh) {
         if (drawnBalls.includes(ball.num)) {
           mesh.visible = false;
@@ -231,42 +308,37 @@ const GlobeSimulation = ({ drawnBalls, textures }: { drawnBalls: number[]; textu
         {/* Golden wireframe sphere cage */}
         <mesh>
           <sphereGeometry args={[5.4, 28, 28]} />
-          <meshStandardMaterial 
+          <meshBasicMaterial 
             wireframe 
             color="#d97706" 
-            roughness={0.15} 
-            metalness={0.9} 
             transparent 
             opacity={0.65} 
           />
         </mesh>
         <mesh>
           <sphereGeometry args={[5.38, 8, 8]} />
-          <meshStandardMaterial 
+          <meshBasicMaterial 
             wireframe 
             color="#f59e0b" 
-            roughness={0.1} 
-            metalness={0.95} 
             transparent 
             opacity={0.25} 
           />
         </mesh>
       </group>
 
-      {/* Render the 75 individual ball meshes */}
-      {simBalls.map((ball, idx) => (
-        <mesh
-          key={ball.num}
-          ref={(el) => {
-            ballRefs.current[idx] = el;
-          }}
-          castShadow
-          receiveShadow
-        >
-          <sphereGeometry args={[ballRadius, 16, 16]} />
-          <meshStandardMaterial map={textures[idx]} roughness={0.15} metalness={0.1} />
-        </mesh>
-      ))}
+      {/* Render the 75 individual ball elements */}
+      {simBalls.map((ball) => {
+        const isHidden = drawnBalls.includes(ball.num);
+        return (
+          <Ball
+            key={ball.num}
+            number={ball.num}
+            initialPosition={[ball.pos.x, ball.pos.y, ball.pos.z]}
+            hidden={isHidden}
+            onRegister={registerBallMesh}
+          />
+        );
+      })}
     </>
   );
 };
@@ -276,89 +348,42 @@ const CageStand = () => {
   return (
     <group position={[0, -5, 0]}>
       {/* Base Plate */}
-      <mesh position={[0, 0, 0]} receiveShadow>
+      <mesh position={[0, 0, 0]}>
         <cylinderGeometry args={[6.8, 7.2, 0.5, 32]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.4} metalness={0.6} />
+        <meshBasicMaterial color="#1e293b" />
       </mesh>
-      <mesh position={[0, 0.3, 0]} receiveShadow>
+      <mesh position={[0, 0.3, 0]}>
         <cylinderGeometry args={[6.3, 6.7, 0.2, 32]} />
-        <meshStandardMaterial color="#f59e0b" roughness={0.1} metalness={0.9} />
+        <meshBasicMaterial color="#f59e0b" />
       </mesh>
       
       {/* Left Pillar Support */}
       <mesh position={[-5.8, 5.2, 0]} rotation={[0, 0, 0.04]}>
         <cylinderGeometry args={[0.35, 0.55, 10, 16]} />
-        <meshStandardMaterial color="#475569" roughness={0.3} metalness={0.8} />
+        <meshBasicMaterial color="#475569" />
       </mesh>
       {/* Right Pillar Support */}
       <mesh position={[5.8, 5.2, 0]} rotation={[0, 0, -0.04]}>
         <cylinderGeometry args={[0.35, 0.55, 10, 16]} />
-        <meshStandardMaterial color="#475569" roughness={0.3} metalness={0.8} />
+        <meshBasicMaterial color="#475569" />
       </mesh>
 
       {/* Center axles */}
       <mesh position={[0, 10.2, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.22, 0.22, 12, 16]} />
-        <meshStandardMaterial color="#f59e0b" roughness={0.1} metalness={0.9} />
+        <meshBasicMaterial color="#f59e0b" />
       </mesh>
     </group>
   );
 };
 
 const GloboFisico = ({ drawnBalls }: Props) => {
-  // Generate 75 canvas-based ball textures once to optimize render performance
-  const textures = useMemo(() => {
-    return Array.from({ length: 75 }, (_, i) => {
-      const number = i + 1;
-      const size = 128;
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d')!;
-      
-      // Gradient matching ball column color
-      const grad = ctx.createRadialGradient(size/2, size/2, 10, size/2, size/2, size/2);
-      grad.addColorStop(0, '#ffffff');
-      grad.addColorStop(0.35, getBallColor(number));
-      grad.addColorStop(1, '#0f172a');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // White circle for label
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size / 3.2, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(number.toString(), size / 2, size / 2);
-
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.needsUpdate = true;
-      return tex;
-    });
-  }, []);
-
   return (
     <div style={{ width: '100%', height: '100%', minHeight: 420 }}>
       <Suspense fallback={null}>
-        <Canvas camera={{ position: [0, 1.5, 15], fov: 48 }} shadows>
-          <ambientLight intensity={0.8} />
-          <directionalLight 
-            position={[5, 15, 6]} 
-            intensity={1.3} 
-            castShadow 
-            shadow-mapSize={[1024, 1024]}
-          />
-          <pointLight position={[-8, 6, -8]} intensity={0.5} />
-          
-          <GlobeSimulation drawnBalls={drawnBalls} textures={textures} />
-          
+        {/* Lights removed as all components now use meshBasicMaterial, saving GPU and WebGL processing */}
+        <Canvas camera={{ position: [0, 1.5, 15], fov: 48 }}>
+          <GlobeSimulation drawnBalls={drawnBalls} />
           <CageStand />
           {drawnBalls.length > 0 && <Ramp number={drawnBalls[0]} />}
         </Canvas>
